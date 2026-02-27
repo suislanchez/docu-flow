@@ -1,7 +1,15 @@
 """Schemas for eligibility criteria and screening decisions."""
 
-from enum import StrEnum
+import sys
 from typing import Any
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # type: ignore[no-redef]
+        pass
 
 from pydantic import BaseModel, Field
 

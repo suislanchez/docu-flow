@@ -1,18 +1,17 @@
 """
-Strategy 3 — Gemini 2.0 Flash (native PDF ingestion via Files API).
+Strategy 3 — Gemini 2.5 Flash (native PDF ingestion via google-genai SDK).
 
 Pipeline:
-  PDF → upload to Gemini Files API (or inline if < 20 MB)
+  PDF → inline bytes (< 18 MB) or Files API (>= 18 MB)
       → single generateContent call: find section + extract + rank top 8
       → StrategyResult
 
 Key advantages over S2:
-  - 258 tokens/page flat rate (vs ~1,600/page for Claude vision)
-  - 1M token context window — entire 200-page protocol in one call
-  - No 100-page limit
+  - 258 tokens/page flat rate vs ~1,600/page for Claude vision
+  - 1M token context window — entire 200-page protocol in one call, no chunking
   - ~40x cheaper than Claude on input tokens
 
-Cost:   ~$0.02–$0.05 per 100-page doc (gemini-2.0-flash)
+Cost:   ~$0.02–$0.05 per 100-page doc (gemini-2.5-flash)
 Speed:  10–30s for a full protocol
 Limit:  50 MB file size, 1,000 pages max
 """
@@ -24,22 +23,23 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parents[4] / "src"))
+_PROJECT_ROOT = Path(__file__).parents[3]
+sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
 from tests.pdf_strategies.result import CriterionResult, RankedDisqualifier, StrategyResult
 from tests.pdf_strategies.strategies.base import BaseStrategy
 from tests.pdf_strategies.strategies._shared_prompt import COMBINED_EXTRACTION_PROMPT, parse_llm_json
 
-# Pricing: gemini-2.0-flash (per token)
-_INPUT_COST_PER_TOKEN = 0.10 / 1_000_000   # $0.10/M
-_OUTPUT_COST_PER_TOKEN = 0.40 / 1_000_000  # $0.40/M
-_TOKENS_PER_PAGE = 258                      # flat rate for PDF pages
+_INPUT_COST_PER_TOKEN = 0.15 / 1_000_000   # gemini-2.5-flash
+_OUTPUT_COST_PER_TOKEN = 0.60 / 1_000_000
+_TOKENS_PER_PAGE = 258
 
 
 class GeminiStrategy(BaseStrategy):
     name = "S3-Gemini"
 
-    def __init__(self, model: str = "gemini-2.0-flash") -> None:
+    def __init__(self, model: str = "gemini-2.5-flash") -> None:
         self.model = model
 
     def run(self, pdf_path: Path) -> StrategyResult:
@@ -47,15 +47,14 @@ class GeminiStrategy(BaseStrategy):
         t0 = time.perf_counter()
 
         try:
-            import google.generativeai as genai
+            import google.genai as genai
+            from google.genai import types
 
-            api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+            api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
             if not api_key:
-                raise RuntimeError(
-                    "GEMINI_API_KEY not set. Add it to your .env file."
-                )
-            genai.configure(api_key=api_key)
+                raise RuntimeError("GOOGLE_API_KEY not set. Add it to your .env file.")
 
+            client = genai.Client(api_key=api_key)
             pdf_bytes = pdf_path.read_bytes()
             file_size_mb = len(pdf_bytes) / (1024 * 1024)
 
@@ -63,48 +62,50 @@ class GeminiStrategy(BaseStrategy):
                 content="[See the attached PDF document above]"
             )
 
-            model_obj = genai.GenerativeModel(self.model)
-
             if file_size_mb < 18:
-                # Inline: base64-encode and send directly
-                import base64
-                pdf_b64 = base64.standard_b64encode(pdf_bytes).decode()
-                response = model_obj.generate_content([
-                    {"mime_type": "application/pdf", "data": pdf_b64},
-                    prompt_text,
-                ])
+                # Inline: pass PDF bytes directly
+                response = client.models.generate_content(
+                    model=self.model,
+                    contents=[
+                        types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"),
+                        prompt_text,
+                    ],
+                )
             else:
-                # Files API: upload then reference
+                # Files API for large PDFs
                 import tempfile
                 with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                     tmp.write(pdf_bytes)
                     tmp_path = tmp.name
                 try:
-                    uploaded = genai.upload_file(
-                        path=tmp_path,
-                        mime_type="application/pdf",
-                        display_name=pdf_path.name,
+                    uploaded = client.files.upload(
+                        file=tmp_path,
+                        config=types.UploadFileConfig(
+                            mime_type="application/pdf",
+                            display_name=pdf_path.name,
+                        ),
                     )
-                    # Wait for processing
                     import time as _time
                     while uploaded.state.name == "PROCESSING":
                         _time.sleep(1)
-                        uploaded = genai.get_file(uploaded.name)
-                    response = model_obj.generate_content([uploaded, prompt_text])
+                        uploaded = client.files.get(name=uploaded.name)
+                    response = client.models.generate_content(
+                        model=self.model,
+                        contents=[uploaded, prompt_text],
+                    )
                 finally:
                     os.unlink(tmp_path)
 
             raw = response.text.strip()
             result.raw_output_preview = raw[:500]
 
-            # Estimate page count for cost
             try:
                 import fitz
                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
                 page_count = len(doc)
                 doc.close()
             except Exception:  # noqa: BLE001
-                page_count = len(pdf_bytes) // 3000  # rough estimate
+                page_count = len(pdf_bytes) // 3000
 
             input_tokens = page_count * _TOKENS_PER_PAGE + len(prompt_text) // 4
             output_tokens = len(raw) // 4

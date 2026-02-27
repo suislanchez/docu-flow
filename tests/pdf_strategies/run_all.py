@@ -35,8 +35,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from pathlib import Path
 
-# Allow running from project root
-sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+# Allow running from any working directory
+_PROJECT_ROOT = Path(__file__).parents[2]
+sys.path.insert(0, str(_PROJECT_ROOT))            # makes `tests.*` importable
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))    # makes `docu_flow.*` importable
 
 from tests.pdf_strategies.evaluator import print_comparison_table, score
 from tests.pdf_strategies.result import StrategyResult

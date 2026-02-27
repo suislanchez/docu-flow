@@ -23,7 +23,9 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parents[4] / "src"))
+_PROJECT_ROOT = Path(__file__).parents[3]
+sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
 from tests.pdf_strategies.result import CriterionResult, RankedDisqualifier, StrategyResult
 from tests.pdf_strategies.strategies.base import BaseStrategy
@@ -91,7 +93,7 @@ class ClaudeVisionStrategy(BaseStrategy):
 def _single_call(client, model: str, pdf_b64: str, prompt: str) -> str:
     response = client.messages.create(
         model=model,
-        max_tokens=4096,
+        max_tokens=8192,
         messages=[
             {
                 "role": "user",

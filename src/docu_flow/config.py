@@ -1,8 +1,9 @@
 """Centralised settings loaded from environment / .env file."""
 
+import os
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,11 +12,20 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",  # silently ignore env vars not declared as fields
     )
 
     # LLM
     anthropic_api_key: str = Field(..., description="Anthropic API key")
-    google_api_key: str | None = Field(None, description="Google Gemini API key (cross-validation)")
+    # Accepts GOOGLE_API_KEY or GEMINI_API_KEY — either env var is sufficient
+    google_api_key: str | None = Field(None, description="Google/Gemini API key (cross-validation)")
+
+    @model_validator(mode="after")
+    def _coerce_gemini_key(self) -> "Settings":
+        """Fall back to GEMINI_API_KEY if GOOGLE_API_KEY is not set."""
+        if not self.google_api_key:
+            self.google_api_key = os.environ.get("GEMINI_API_KEY") or None
+        return self
     openai_api_key: str | None = None
     primary_llm_model: str = "claude-sonnet-4-6"
     fast_llm_model: str = "claude-haiku-4-5-20251001"
