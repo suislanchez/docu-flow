@@ -9,10 +9,9 @@ interface ScreeningFormProps {
   onResult: (result: ScreeningResult) => void;
 }
 
-// Preset patient profiles for quick demo
 const PRESETS: Array<{ label: string; data: ScreeningRequest["patient_data"] }> = [
   {
-    label: "Healthy Adult ♂",
+    label: "Healthy Adult M",
     data: { age: 42, sex: "male", diagnoses: [], prior_malignancy: false, is_pregnant: false, HbA1c: 5.6, eGFR: 88 },
   },
   {
@@ -70,29 +69,29 @@ export function ScreeningForm({ protocolId, onResult }: ScreeningFormProps) {
   return (
     <form onSubmit={submit} className="space-y-5">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-          <User className="w-4 h-4 text-slate-500" />
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <User className="w-4 h-4 text-gray-400" />
           Patient ID
         </label>
         <input
           type="text"
           value={patientId}
           onChange={e => setPatientId(e.target.value)}
-          className="w-full bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60"
+          className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
           placeholder="pt-001"
         />
       </div>
 
       {/* Presets */}
       <div className="space-y-2">
-        <p className="text-xs text-slate-500 uppercase tracking-wide">Quick presets</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Quick presets</p>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((p) => (
             <button
               key={p.label}
               type="button"
               onClick={() => applyPreset(p.data)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-600/40 transition-colors"
+              className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200 transition-colors"
             >
               {p.label}
             </button>
@@ -102,10 +101,10 @@ export function ScreeningForm({ protocolId, onResult }: ScreeningFormProps) {
 
       {/* Patient JSON editor */}
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-slate-500" />
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <FlaskConical className="w-4 h-4 text-gray-400" />
           Patient Data
-          <span className="text-xs text-slate-500 font-normal">(JSON)</span>
+          <span className="text-xs text-gray-400 font-normal">(JSON)</span>
         </label>
         <textarea
           value={json}
@@ -113,17 +112,17 @@ export function ScreeningForm({ protocolId, onResult }: ScreeningFormProps) {
           rows={10}
           spellCheck={false}
           className={cn(
-            "w-full font-mono text-xs bg-slate-900/80 border rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:ring-2 resize-y",
+            "w-full font-mono text-xs bg-gray-50 border rounded-lg px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 resize-y",
             jsonError
-              ? "border-red-500/60 focus:ring-red-500/30"
-              : "border-slate-700 focus:ring-brand-500/40 focus:border-brand-500/60"
+              ? "border-red-300 focus:ring-red-300"
+              : "border-gray-300 focus:ring-blue-500/30 focus:border-blue-400"
           )}
         />
-        {jsonError && <p className="text-xs text-red-400">{jsonError}</p>}
+        {jsonError && <p className="text-xs text-red-500">{jsonError}</p>}
       </div>
 
       {apiError && (
-        <div className="rounded-lg bg-red-900/30 border border-red-500/30 px-3 py-2 text-sm text-red-300">
+        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
           {apiError}
         </div>
       )}
@@ -131,12 +130,12 @@ export function ScreeningForm({ protocolId, onResult }: ScreeningFormProps) {
       <button
         type="submit"
         disabled={loading || !!jsonError}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 transition-colors"
+        className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 transition-colors"
       >
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Screening…
+            Screening...
           </>
         ) : (
           "Run Pre-screen"

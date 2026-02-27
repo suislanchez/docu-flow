@@ -73,7 +73,11 @@ DOCUMENT CONTENT:
 
 
 def parse_llm_json(raw: str) -> dict:
-    """Strip markdown fences and parse JSON from LLM response."""
+    """Strip markdown fences and parse JSON from LLM response.
+
+    If the JSON is truncated (response hit max_tokens), tries to recover a
+    partial result by truncating at the last complete top-level array entry.
+    """
     # Remove ```json ... ``` or ``` ... ``` fences
     raw = re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=re.MULTILINE)
     raw = re.sub(r"\s*```$", "", raw.strip(), flags=re.MULTILINE)
@@ -85,4 +89,23 @@ def parse_llm_json(raw: str) -> dict:
     if start != -1 and end > start:
         raw = raw[start:end]
 
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        # Attempt truncation repair: walk backwards to find last complete object
+        for i in range(len(raw) - 1, 0, -1):
+            if raw[i] in ("]", "}"):
+                candidate = raw[: i + 1]
+                # Close any unclosed brackets/braces
+                opens = candidate.count("{") - candidate.count("}")
+                candidate += "}" * opens
+                opens = candidate.count("[") - candidate.count("]")
+                candidate += "]" * opens
+                # Wrap up to root object
+                if not candidate.rstrip().endswith("}"):
+                    candidate += "}"
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+        raise

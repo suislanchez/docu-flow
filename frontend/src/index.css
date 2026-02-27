@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* React Flow dark mode overrides */
+/* React Flow overrides for n8n-style */
 .react-flow__edge-path {
   stroke-width: 1.5;
 }
@@ -11,10 +11,14 @@
   display: none;
 }
 
-/* Smooth scrollbar */
+.react-flow__background {
+  background-color: #fafafa;
+}
+
+/* Scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #d1d5db transparent;
 }
 
 ::-webkit-scrollbar {
@@ -27,6 +31,6 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #d1d5db;
   border-radius: 3px;
 }

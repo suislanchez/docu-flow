@@ -20,12 +20,12 @@ export function ScreeningResultCard({ result, onReset }: ScreeningResultCardProp
   return (
     <div className="space-y-4">
       {/* Decision banner */}
-      <div className={cn("rounded-xl border px-5 py-4 flex items-start gap-4", config.color)}>
+      <div className={cn("rounded-lg border px-5 py-4 flex items-start gap-4", config.color)}>
         <Icon className="w-7 h-7 shrink-0 mt-0.5" />
         <div>
           <p className="font-bold text-base">{config.label}</p>
           <p className="text-sm opacity-80 mt-0.5">
-            Patient <span className="font-mono">{patient_id}</span> · Confidence {pct(confidence)}
+            Patient <span className="font-mono">{patient_id}</span> -- Confidence {pct(confidence)}
           </p>
         </div>
         <div className="ml-auto text-right shrink-0">
@@ -36,11 +36,11 @@ export function ScreeningResultCard({ result, onReset }: ScreeningResultCardProp
 
       {/* Confidence bar */}
       <div className="space-y-1.5">
-        <div className="flex justify-between text-xs text-slate-500">
+        <div className="flex justify-between text-xs text-gray-400">
           <span>Confidence</span>
           <span>{pct(confidence)}</span>
         </div>
-        <div className="h-2 rounded-full bg-slate-800">
+        <div className="h-2 rounded-full bg-gray-100">
           <div
             className={cn(
               "h-2 rounded-full transition-all duration-700",
@@ -56,14 +56,14 @@ export function ScreeningResultCard({ result, onReset }: ScreeningResultCardProp
       {/* Failed criteria */}
       {failed_criteria.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Failed criteria ({failed_criteria.length})
           </p>
           {failed_criteria.map(({ criterion, reason }) => (
-            <div key={criterion.id} className="rounded-lg bg-red-900/20 border border-red-500/20 p-3 space-y-1">
-              <p className="text-xs font-mono text-red-400">{criterion.id}</p>
-              <p className="text-sm text-slate-200 leading-snug">{criterion.text}</p>
-              <p className="text-xs text-red-300/80 italic">↳ {reason}</p>
+            <div key={criterion.id} className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-1">
+              <p className="text-xs font-mono text-red-500">{criterion.id}</p>
+              <p className="text-sm text-gray-800 leading-snug">{criterion.text}</p>
+              <p className="text-xs text-red-600 italic">{reason}</p>
             </div>
           ))}
         </div>
@@ -71,30 +71,30 @@ export function ScreeningResultCard({ result, onReset }: ScreeningResultCardProp
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-3 text-center">
-        <div className="rounded-lg bg-slate-800/60 border border-slate-700/40 py-3">
-          <p className="text-2xl font-bold text-emerald-400 tabular-nums">{passed_criteria_count}</p>
-          <p className="text-xs text-slate-500 mt-0.5">criteria passed</p>
+        <div className="rounded-lg bg-gray-50 border border-gray-200 py-3">
+          <p className="text-2xl font-bold text-emerald-600 tabular-nums">{passed_criteria_count}</p>
+          <p className="text-xs text-gray-400 mt-0.5">criteria passed</p>
         </div>
-        <div className="rounded-lg bg-slate-800/60 border border-slate-700/40 py-3">
-          <p className="text-2xl font-bold text-red-400 tabular-nums">{failed_criteria.length}</p>
-          <p className="text-xs text-slate-500 mt-0.5">criteria failed</p>
+        <div className="rounded-lg bg-gray-50 border border-gray-200 py-3">
+          <p className="text-2xl font-bold text-red-600 tabular-nums">{failed_criteria.length}</p>
+          <p className="text-xs text-gray-400 mt-0.5">criteria failed</p>
         </div>
       </div>
 
       {/* Escalation reason */}
       {escalation_reason && (
-        <div className="rounded-lg bg-amber-900/20 border border-amber-500/20 px-3 py-2 text-xs text-amber-300">
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
           <span className="font-semibold">Escalation reason:</span> {escalation_reason}
         </div>
       )}
 
       {model_used && (
-        <p className="text-xs text-slate-600 text-right font-mono">model: {model_used}</p>
+        <p className="text-xs text-gray-400 text-right font-mono">model: {model_used}</p>
       )}
 
       <button
         onClick={onReset}
-        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-800/40 hover:bg-slate-800/70 text-slate-400 hover:text-slate-200 text-sm py-2 transition-colors"
+        className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 text-sm py-2 transition-colors"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         Screen another patient

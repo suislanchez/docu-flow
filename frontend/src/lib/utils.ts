@@ -9,27 +9,27 @@ export function pct(n: number) {
 }
 
 export const POWER_COLORS: Record<string, string> = {
-  very_high: "bg-red-500/20 text-red-300 border-red-500/30",
-  high:      "bg-orange-500/20 text-orange-300 border-orange-500/30",
-  medium:    "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-  low:       "bg-slate-500/20 text-slate-300 border-slate-500/30",
-  unknown:   "bg-slate-700/20 text-slate-400 border-slate-700/30",
+  very_high: "bg-red-50 text-red-700 border-red-200",
+  high:      "bg-orange-50 text-orange-700 border-orange-200",
+  medium:    "bg-yellow-50 text-yellow-700 border-yellow-200",
+  low:       "bg-gray-50 text-gray-600 border-gray-200",
+  unknown:   "bg-gray-50 text-gray-500 border-gray-200",
 };
 
 export const DECISION_CONFIG = {
   disqualified: {
     label: "Disqualified",
-    color: "bg-red-500/20 text-red-300 border-red-500/40",
-    dot: "bg-red-400",
+    color: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
   },
   passed_prescreen: {
     label: "Passed Pre-screen",
-    color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-    dot: "bg-emerald-400",
+    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   escalate: {
     label: "Escalate to Human",
-    color: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-    dot: "bg-amber-400",
+    color: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
   },
 } as const;

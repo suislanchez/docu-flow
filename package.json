@@ -8,10 +8,14 @@
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:e2e": "vitest run tests/e2e"
+    "test:e2e": "vitest run tests/e2e",
+    "test:stress": "vitest run tests/stress"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.0",
+    "pdf-to-img": "^5.0.0",
+    "pdfjs-dist": "^4.10.38",
+    "tesseract.js": "^7.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   }

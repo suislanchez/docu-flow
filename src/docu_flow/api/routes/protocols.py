@@ -79,7 +79,7 @@ async def get_protocol(protocol_id: str) -> ProtocolStatus:
     return job
 
 
-@router.delete("/{protocol_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{protocol_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def delete_protocol(protocol_id: str) -> None:
     if protocol_id not in _jobs:
         raise HTTPException(status_code=404, detail=f"Protocol '{protocol_id}' not found.")
