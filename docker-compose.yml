@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./src:/app/src
+      - uploads:/tmp/docu-flow/uploads
+      - results:/tmp/docu-flow/results
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: uvicorn docu_flow.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    env_file: .env
+    volumes:
+      - ./src:/app/src
+      - uploads:/tmp/docu-flow/uploads
+      - results:/tmp/docu-flow/results
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A docu_flow.worker.celery_app worker --loglevel=info --concurrency=2
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  uploads:
+  results:
